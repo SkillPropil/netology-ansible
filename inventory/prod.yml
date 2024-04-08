@@ -1,15 +1,5 @@
 ---
-  el:
-    hosts:
-      centos7:
-        ansible_connection: docker
-        some_fact: "el default fact"
-  deb:
-    hosts:
-      ubuntu:
-        ansible_connection: docker
-        some_fact: "deb default fact"
-  local:
-    hosts:
-      localhost:
-        ansible_connection: local
+clickhouse:
+  hosts:
+    clickhouse-01:
+      ansible_host: 192.168.135.129

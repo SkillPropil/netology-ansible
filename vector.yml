@@ -1,0 +1,31 @@
+- name: Install Vector
+  hosts: clickhouse
+  handlers:
+    - name: Start vector service
+      ansible.builtin.systemd_service:
+        name: vector
+        state: started
+        daemon_reload: true
+
+    - name: Restart vector service
+      ansible.builtin.service:
+        name: vector
+        state: restarted
+
+  tasks:
+    - name: Get vector rpm
+      ansible.builtin.get_url:
+        url: https://yum.vector.dev/stable/vector-0/x86_64/vector-0.37.0-1.x86_64.rpm
+        dest: /tmp
+    
+    - name: Install vector package
+      ansible.builtin.yum:
+        name: /tmp/vector-0.37.0-1.x86_64.rpm
+        state: present
+
+    - name: Generate vector config
+      ansible.builtin.template:
+        src: vector.j2
+        dest: /etc/vector/vector.yaml
+        mode: u=rw,g=rw,o=r
+      notify: Restart vector service
