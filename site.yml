@@ -1,4 +1,18 @@
 ---
+- name: Podgotovka host's
+  hosts: all
+  handlers:
+    
+    - name: Update trusted ca redhat
+      shell: /bin/update-ca-trust
+
+  pre_tasks:
+    - name: Copy ca_cert to new VM
+      ansible.builtin.copy:
+        src: /tmp/ca.crt
+        dest: /etc/pki/ca-trust/source/anchors/
+      notify: Update trusted ca redhat
+
 - name: Install Clickhouse
   hosts: clickhouse
   handlers:
@@ -7,7 +21,6 @@
       ansible.builtin.service:
         name: clickhouse-server
         state: started
-
   tasks:
     - block:
         - name: Get clickhouse distrib
@@ -41,3 +54,4 @@
       changed_when: create_db.rc == 0    
         
 - import_playbook: vector.yml
+- import_playbook: lighthouse.yml

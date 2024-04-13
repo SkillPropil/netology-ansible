@@ -1,0 +1,52 @@
+---
+- name: Install nginx
+  hosts: lighthouse
+  handlers:
+    - name: Start nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+
+  tasks:
+    - name: Install epel and git repo
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - epel-release
+        - git
+  
+    - name: Install nginx
+      ansible.builtin.yum:
+        name: nginx >= 1.20
+        state: present
+      notify: Start nginx
+
+- name: Install lighthouse
+  hosts: lighthouse
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+  tasks:
+    - name: Clone git repo
+      ansible.builtin.git:
+        repo: https://github.com/VKCOM/lighthouse.git
+        dest: /opt/lighthouse
+        clone: yes
+        update: yes
+
+    - name: Make directory /var/www/html
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        recurse: yes
+
+    - name: Copy index.html from git repo to nginx
+      ansible.builtin.copy: 
+        src: /opt/lighthouse/index.html
+        dest: /var/www/html/index.html
+        remote_src: yes
+      notify: Restart nginx
